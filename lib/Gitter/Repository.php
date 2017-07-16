@@ -270,7 +270,9 @@ class Repository
 
         foreach ($branches as $branch) {
             if ($branch[0] === '*') {
-                if ((strpos($branch, '* (detached from ') === 0) || ($branch === '* (no branch)')) {
+                if ((strpos($branch, '* (detached from ') === 0)
+                        || ($branch === '* (no branch)')
+                        || (strpos($branch, '* (HEAD detached at ') === 0)) {
                     return NULL;
                 }
 

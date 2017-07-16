@@ -17,6 +17,7 @@ use Symfony\Component\Process\ExecutableFinder;
 class Client
 {
     protected $path;
+    protected $lang = 'LANG=en_US';
 
     public function __construct($path = null)
     {
@@ -66,7 +67,7 @@ class Client
             $command = '-c "color.ui"=false ' . $command;
         }
 
-        $process = new Process($this->getPath() . ' ' . $command, $repository->getPath());
+        $process = new Process($this->lang . ' ' . $this->getPath() . ' ' . $command, $repository->getPath());
         $process->setTimeout(180);
         $process->run();
 
