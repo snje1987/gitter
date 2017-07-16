@@ -370,9 +370,17 @@ class Repository
      *
      * @return array Commit log
      */
-    public function getCommits($file = null)
-    {
-        $command = "log --pretty=format:\"<item><hash>%H</hash><short_hash>%h</short_hash><tree>%T</tree><parents>%P</parents><author>%an</author><author_email>%ae</author_email><date>%at</date><commiter>%cn</commiter><commiter_email>%ce</commiter_email><commiter_date>%ct</commiter_date><message><![CDATA[%s]]></message></item>\"";
+    public function getCommits($file = null, $skip = 0, $count = -1) {
+        $command = 'log';
+        $skip = intval($skip);
+        $count = intval($count);
+        if ($skip > 0) {
+            $command .= ' --skip ' . $skip;
+        }
+        if ($count > 0) {
+            $command .= ' -' . $count;
+        }
+        $command .= " --pretty=format:\"<item><hash>%H</hash><short_hash>%h</short_hash><tree>%T</tree><parents>%P</parents><author>%an</author><author_email>%ae</author_email><date>%at</date><commiter>%cn</commiter><commiter_email>%ce</commiter_email><commiter_date>%ct</commiter_date><message><![CDATA[%s]]></message></item>\"";
 
         if ($file) {
             $command .= " $file";
@@ -427,6 +435,18 @@ class Repository
         $commit->setDiffs($this->readDiffLogs($logs));
 
         return $commit;
+    }
+
+    /**
+     * Read diff logs and generate a collection of diffs
+     *
+     * @param string $commitHash Hash of the specific commit to read data
+     * @param string $file File to compare
+     * @return array       Array of diffs
+     */
+    public function getFileChange($commitHash, $file) {
+        $logs = explode("\n", $this->getClient()->run($this, 'diff ' . $commitHash . '~1..' . $commitHash . ' ' . $file));
+        return $this->readDiffLogs($logs);
     }
 
     /**
