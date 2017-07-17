@@ -153,6 +153,16 @@ class Repository
         return $this;
     }
 
+    public function reset($hard = false) {
+        $cmd = 'reset';
+        if ($hard) {
+            $cmd .= ' --hard';
+        }
+        $this->getClient()->run($this, $cmd);
+
+        return $this;
+    }
+
     /**
      * Commit changes to the repository
      *
@@ -180,9 +190,18 @@ class Repository
     /**
      * Pull repository changes
      */
-    public function pull()
-    {
-        $this->getClient()->run($this, "pull");
+    public function pull($repository = null, $refspec = null) {
+        $command = "pull";
+
+        if ($repository) {
+            $command .= " $repository";
+        }
+
+        if ($refspec) {
+            $command .= " $refspec";
+        }
+
+        $this->getClient()->run($this, $command);
 
         return $this;
     }
