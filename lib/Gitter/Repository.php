@@ -428,13 +428,16 @@ class Repository
      * @param  string $commitHash Hash of the specific commit to read data
      * @return array  Commit data
      */
-    public function getCommit($commitHash)
-    {
+    public function getCommit($commitHash, $file = null) {
         if (version_compare($this->getClient()->getVersion(), '1.8.4', '>=')) {
-            $logs = $this->getClient()->run($this, "show --ignore-blank-lines -w -b --pretty=format:\"<item><hash>%H</hash><short_hash>%h</short_hash><tree>%T</tree><parents>%P</parents><author>%an</author><author_email>%ae</author_email><date>%at</date><commiter>%cn</commiter><commiter_email>%ce</commiter_email><commiter_date>%ct</commiter_date><message><![CDATA[%s]]></message><body><![CDATA[%b]]></body></item>\" $commitHash");
+            $command = "show --ignore-blank-lines -w -b --pretty=format:\"<item><hash>%H</hash><short_hash>%h</short_hash><tree>%T</tree><parents>%P</parents><author>%an</author><author_email>%ae</author_email><date>%at</date><commiter>%cn</commiter><commiter_email>%ce</commiter_email><commiter_date>%ct</commiter_date><message><![CDATA[%s]]></message><body><![CDATA[%b]]></body></item>\" $commitHash";
         } else {
-            $logs = $this->getClient()->run($this, "show --pretty=format:\"<item><hash>%H</hash><short_hash>%h</short_hash><tree>%T</tree><parents>%P</parents><author>%an</author><author_email>%ae</author_email><date>%at</date><commiter>%cn</commiter><commiter_email>%ce</commiter_email><commiter_date>%ct</commiter_date><message><![CDATA[%s]]></message><body><![CDATA[%b]]></body></item>\" $commitHash");
+            $command = "show --pretty=format:\"<item><hash>%H</hash><short_hash>%h</short_hash><tree>%T</tree><parents>%P</parents><author>%an</author><author_email>%ae</author_email><date>%at</date><commiter>%cn</commiter><commiter_email>%ce</commiter_email><commiter_date>%ct</commiter_date><message><![CDATA[%s]]></message><body><![CDATA[%b]]></body></item>\" $commitHash";
         }
+        if ($file != null) {
+            $command .= ' ' . $file;
+        }
+        $logs = $this->getClient()->run($this, $command);
         $xmlEnd = strpos($logs, '</item>') + 7;
         $commitInfo = substr($logs, 0, $xmlEnd);
         $commitData = substr($logs, $xmlEnd);
@@ -448,24 +451,16 @@ class Repository
         $commit->importData($data[0]);
 
         if (empty($logs[1])) {
-            $logs = explode("\n", $this->getClient()->run($this, 'diff ' . $commitHash . '~1..' . $commitHash));
+            $command = 'diff ' . $commitHash . '~1..' . $commitHash;
+            if ($file != null) {
+                $command .= ' ' . $file;
+            }
+            $logs = explode("\n", $this->getClient()->run($this, $command));
         }
 
         $commit->setDiffs($this->readDiffLogs($logs));
 
         return $commit;
-    }
-
-    /**
-     * Read diff logs and generate a collection of diffs
-     *
-     * @param string $commitHash Hash of the specific commit to read data
-     * @param string $file File to compare
-     * @return array       Array of diffs
-     */
-    public function getFileChange($commitHash, $file) {
-        $logs = explode("\n", $this->getClient()->run($this, 'diff ' . $commitHash . '~1..' . $commitHash . ' ' . $file));
-        return $this->readDiffLogs($logs);
     }
 
     /**
