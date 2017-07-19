@@ -492,12 +492,12 @@ class Repository
                 continue;
             }
 
-            if ('---' === substr($log, 0, 3)) {
+            if ('---' === substr($log, 0, 3) && $diff->getOld() === null) {
                 $diff->setOld($log);
                 continue;
             }
 
-            if ('+++' === substr($log, 0, 3)) {
+            if ('+++' === substr($log, 0, 3) && $diff->getNew() === null) {
                 $diff->setNew($log);
                 continue;
             }
