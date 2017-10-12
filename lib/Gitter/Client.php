@@ -17,7 +17,9 @@ use Symfony\Component\Process\ExecutableFinder;
 class Client
 {
     protected $path;
-    protected $lang = 'LANG=en_US';
+    protected $env = array(
+        'LANG' => 'en_US',
+    );
 
     public function __construct($path = null)
     {
@@ -66,8 +68,8 @@ class Client
         if (version_compare($this->getVersion(), '1.7.2', '>=')) {
             $command = '-c "color.ui"=false ' . $command;
         }
-
-        $process = new Process($this->lang . ' ' . $this->getPath() . ' ' . $command, $repository->getPath());
+        $process = new Process($this->getPath() . ' ' . $command, $repository->getPath(), $this->env);
+        $process->inheritEnvironmentVariables(true);
         $process->setTimeout(180);
         $process->run();
 
@@ -85,8 +87,8 @@ class Client
         if (null !== $version) {
             return $version;
         }
-
-        $process = new Process($this->getPath() . ' --version');
+        $process = new Process($this->getPath() . ' --version', null, $this->env);
+        $process->inheritEnvironmentVariables(true);
         $process->run();
 
         if (!$process->isSuccessful()) {
