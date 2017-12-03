@@ -5,5 +5,5 @@ vendor/
 .Trashes
 .idea
 phpunit.xml
-/nbproject/
+/nbproject/private/
 /composer.lock
